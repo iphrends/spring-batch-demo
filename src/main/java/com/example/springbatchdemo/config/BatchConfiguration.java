@@ -1,29 +1,30 @@
 package com.example.springbatchdemo.config;
 
 import com.example.springbatchdemo.entities.FooBar;
+import com.example.springbatchdemo.listeners.RetryListner;
 import com.example.springbatchdemo.models.Foo;
+import com.example.springbatchdemo.processors.FooBarProcessor;
+import com.example.springbatchdemo.readers.IdpReader;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.database.JpaItemWriter;
-import org.springframework.batch.item.json.GsonJsonObjectReader;
-import org.springframework.batch.item.json.JsonItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.retry.RetryListener;
+import org.springframework.retry.annotation.EnableRetry;
 
 import java.net.MalformedURLException;
 
 @Configuration
 @EnableBatchProcessing
+@EnableRetry
 public class BatchConfiguration {
 
     @Autowired
@@ -34,9 +35,15 @@ public class BatchConfiguration {
     private LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean;
 
     @Bean
+    public RetryListener retryListener() {
+        return new RetryListner();
+    }
+
+    @Bean
     public ItemReader<Foo> reader() throws MalformedURLException {
-        Resource resource = new UrlResource("http://localhost:8990/test-data/list");
-        return new JsonItemReader<>(resource, new GsonJsonObjectReader<>(Foo.class));
+        /*Resource resource = new UrlResource("http://localhost:8990/test-data/list");
+        return new JsonItemReader<>(resource, new GsonJsonObjectReader<>(Foo.class));*/
+        return new IdpReader();
     }
 
     @Bean
@@ -54,7 +61,7 @@ public class BatchConfiguration {
     @Bean
     public Step step1() throws MalformedURLException {
         return stepBuilderFactory.get("step1")
-                .<Foo, FooBar>chunk(1)
+                .<Foo, FooBar>chunk(100)
                 .reader(reader())
                 .processor(processor())
                 .writer(writer())
@@ -80,18 +87,3 @@ public class BatchConfiguration {
                 .build();
     }*/
 }
-
-class FooBarProcessor implements ItemProcessor<Foo, FooBar> {
-
-    @Override
-    public FooBar process(Foo item) throws Exception {
-        return new FooBar(item.getFoo(), "BAR" + item.getFoo());
-        /*return items.stream().map(new Function<Foo, FooBar>() {
-            @Override
-            public FooBar apply(Foo item) {
-                return new FooBar(item.getFoo(), "BAR" + item.getFoo());
-            }
-        }).collect(Collectors.toList());*/
-    }
-}
-
