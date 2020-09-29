@@ -1,7 +1,6 @@
 package com.example.springbatchdemo.entities;
 
 import javax.persistence.*;
-import java.math.BigInteger;
 
 @Entity
 public class FooBar {

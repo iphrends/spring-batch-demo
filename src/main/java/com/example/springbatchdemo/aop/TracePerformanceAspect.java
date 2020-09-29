@@ -14,7 +14,7 @@ public class TracePerformanceAspect {
 
     private final Logger logger = LoggerFactory.getLogger(TracePerformanceAspect.class);
 
-    @Around ("execution(* com.example.springbatchdemo..*.*(..)))")
+   /* @Around ("execution(* com.example.springbatchdemo..*.*(..)))")
     public Object logTracePerformanceAspect(ProceedingJoinPoint joinPoint) throws Throwable {
 
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
@@ -32,5 +32,5 @@ public class TracePerformanceAspect {
         logger.info("Execution time of {}.{} :: {} ms", className, methodName, (end - start));
 
         return result;
-    }
+    }*/
 }
